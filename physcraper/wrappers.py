@@ -226,7 +226,12 @@ def own_data_run(seqaln,
         scraper.generate_streamed_alignment(treshold)
 
 def concat(genelist, workdir_comb, user_concat = None):
-    concat = Concat(workdir_comb)
+    if os.path.isfile("{}/concat_checkpoint.p".format(workdir_comb)): 
+        sys.stdout.write("Reloading from pickled file: concat\n")
+        concat = pickle.load(open("{}/concat_checkpoint.p".format(workdir_comb),'rb'))
+    else:   
+        concat = Concat(workdir_comb)
+        concat.dump()
     comb = concat.combine(genelist)
 
 
