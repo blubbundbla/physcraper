@@ -854,7 +854,7 @@ class FilterBlast(PhyscraperScrape):
                                             general_wd = os.getcwd()
                                             # print("writing: {}".format(fn_oldseq))
                                             os.chdir(os.path.join(self.workdir, "blast"))
-                                            fn_oldseq = key +  "_tobeblasted"
+                                            fn_oldseq = userName +  "_tobeblasted"
                                             fi_old = open(fn_oldseq, 'w')
                                             fi_old.write(">{}\n".format(userName_aln.label))
                                             fi_old.write("{}\n".format(seq))
@@ -869,7 +869,7 @@ class FilterBlast(PhyscraperScrape):
                                             general_wd = os.getcwd()
                                             # print("writing: {}".format(fn_oldseq))
                                             os.chdir(os.path.join(self.workdir, "blast"))
-                                            fn_oldseq = key +  "_tobeblasted"
+                                            fn_oldseq = userName +  "_tobeblasted"
                                             fi_old = open(fn_oldseq, 'w')
                                             fi_old.write(">{}\n".format(userName_aln.label))
                                             fi_old.write("{}\n".format(seq))

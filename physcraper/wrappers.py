@@ -207,29 +207,13 @@ def own_data_run(seqaln,
         # else:   
             #Now combine the data, the ids, and the configuration into a single physcraper scrape object
         scraper =  PhyscraperScrape(data_obj, ids, conf)
-        if add_local_seq != None:
-            print("will add local sequences now")
-            scraper.add_local_seq(add_local_seq, id_to_spn_addseq_json)
-            # scraper.replace_new_seq()
-            scraper.remove_identical_seqs()
-            scraper.generate_streamed_alignment(treshold)
-
-
-
-
+        
         #run the ananlyses
         scraper.run_blast()
         scraper.read_blast()
         scraper.remove_identical_seqs()
         scraper.dump()
         print(treshold)
-        if treshold != None:  
-
-            scraper.sp_dict(downtorank)
-            scraper.make_new_seq_dict(treshold=treshold, selectby=selectby)
-            scraper.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
-            scraper.replace_new_seq()
-        print("from replace to streamed aln")
         scraper.generate_streamed_alignment(treshold)
     while scraper.repeat == 1: 
         scraper.data.write_labelled(label='user:TaxonName')
@@ -239,17 +223,11 @@ def own_data_run(seqaln,
         scraper.remove_identical_seqs()
 #        scraper.how_many_sp_to_keep(treshold=treshhold)
         print("make sp_dict")    
-        if treshold != None:  
-            scraper.sp_dict(downtorank)
-            filteredScrape = FilterBlast(scraper)
-            scraper.make_new_seq_dict(treshold=treshold, selectby=selectby)
-            scraper.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
-            scraper.replace_new_seq()
         scraper.generate_streamed_alignment(treshold)
 
-def concat(gene1, gene2, user_concat = None):
-    scraper = PhyscraperScrape(data_obj, ids, conf)
-    comb = scraper.combine(gene1, gene2)
+def concat(genelist, workdir_comb, user_concat = None):
+    concat = Concat(workdir_comb)
+    comb = concat.combine(genelist)
 
 
 
@@ -336,10 +314,6 @@ def filter_data_run(seqaln,
             # scraper.replace_new_seq()
             filteredScrape.remove_identical_seqs()
             filteredScrape.generate_streamed_alignment(treshold)
-
-
-
-
         #run the ananlyses
         filteredScrape.run_blast()
         filteredScrape.read_blast()
@@ -347,13 +321,13 @@ def filter_data_run(seqaln,
         filteredScrape.dump()
         print(treshold)
         if treshold != None:  
-
             filteredScrape.sp_dict(downtorank)
             filteredScrape.make_new_seq_dict(treshold=treshold, selectby=selectby)
             filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
             filteredScrape.replace_new_seq()
         print("from replace to streamed aln")
         filteredScrape.generate_streamed_alignment(treshold)
+        filteredScrape.dump()
     while filteredScrape.repeat == 1: 
         filteredScrape.data.write_labelled(label='user:TaxonName')
         filteredScrape.data.write_otus("otu_info", schema='table')
@@ -368,3 +342,4 @@ def filter_data_run(seqaln,
             filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
             filteredScrape.replace_new_seq()
         filteredScrape.generate_streamed_alignment(treshold)
+        filteredScrape.dump()
