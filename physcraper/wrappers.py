@@ -6,7 +6,7 @@ import subprocess
 import json
 import csv
 from ete2 import NCBITaxa
-from physcraper import generate_ATT_from_phylesystem, generate_ATT_from_files, ConfigObj, IdDicts, PhyscraperScrape
+from physcraper import generate_ATT_from_phylesystem, generate_ATT_from_files, ConfigObj, IdDicts, PhyscraperScrape, FilterBlast, Concat
 from dendropy import DnaCharacterMatrix
 
 
@@ -241,10 +241,130 @@ def own_data_run(seqaln,
         print("make sp_dict")    
         if treshold != None:  
             scraper.sp_dict(downtorank)
+            filteredScrape = FilterBlast(scraper)
             scraper.make_new_seq_dict(treshold=treshold, selectby=selectby)
             scraper.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
             scraper.replace_new_seq()
         scraper.generate_streamed_alignment(treshold)
 
 def concat(gene1, gene2, user_concat = None):
-    comb = combine(gene1, gene2)
+    scraper = PhyscraperScrape(data_obj, ids, conf)
+    comb = scraper.combine(gene1, gene2)
+
+
+
+def filter_data_run(seqaln,
+                 mattype,
+                 trfn,
+                 schema_trf,
+                 workdir,
+                 treshold,
+                 selectby,
+                 downtorank,
+                 spInfoDict,
+                 add_local_seq,
+                 id_to_spn_addseq_json,
+                 configfi):
+    '''looks for pickeled file to continue run, or builds and runs 
+    new analysis for as long as new seqs are found'''
+    if os.path.isfile("{}/scrape_checkpoint.p".format(workdir)): 
+        sys.stdout.write("Reloading from pickled scrapefile: scrape\n")
+        filteredScrape = pickle.load(open("{}/scrape_checkpoint.p".format(workdir),'rb'))
+        filteredScrape.repeat = 1    
+    else:   
+#            sync_names()
+        sys.stdout.write("setting up Data Object\n")
+        sys.stdout.flush()
+        #read the config file into a configuration object
+        conf = ConfigObj(configfi)
+        # print("config")
+        print(dir(conf))
+        print(conf.email)
+        # print(seqaln, mattype)
+        # #aln = DnaCharacterMatrix.get(path=seqaln, schema=mattype)
+
+        #Generate an linked Alignment-Tree-Taxa object
+        data_obj = generate_ATT_from_files(seqaln=seqaln, 
+                             mattype=mattype, 
+                             workdir=workdir,
+                             treefile=trfn,
+                             schema_trf = schema_trf,
+                             otu_json=spInfoDict,
+                             email = conf.email,
+                             ingroup_mrca=None)
+
+        #Prune sequnces below a certain length threshold
+        #This is particularly important when using loci that have been de-concatenated, as some are 0 length which causes problems.
+        data_obj.prune_short()
+
+        data_obj.write_files()
+
+        data_obj.write_labelled( label='user:TaxonName')
+        data_obj.write_otus("otu_info", schema='table')
+        data_obj.dump()
+        
+        #ids = IdDicts(conf, workdir="example")
+    #         if os.path.isfile("{}/id_pickle.p".format(workdir)): 
+
+    #         #if os.path.isfile(conf.id_pickle):
+    #             sys.stdout.write("Reloading id dicts from {}\n".format(conf.id_pickle))
+    # #        thawed_id = open(conf.id_json, 'r').readlines()
+    # #        ids = jsonpickle.decode(thawed_id)
+    # #        scraper.repeat = 1
+    #             ids = pickle.load(open("{}/id_pickle.p".format(workdir),'rb'))
+    #         else:
+        sys.stdout.write("setting up id dictionaries\n")
+        sys.stdout.flush()
+        # if os.path.isfile("{}/id_pickle.p".format(workdir)): 
+        #     sys.stdout.write("Reloading from pickled scrapefile: id\n")
+        #     ids = pickle.load(open("{}/id_pickle.p".format(workdir),'rb'))
+
+        # else:   
+        ids = IdDicts(conf, workdir=workdir)
+        ids.dump()
+
+        # if os.path.isfile("{}/scrape_checkpoint.p".format(workdir)): 
+        #     sys.stdout.write("Reloading from pickled scrapefile: scrape\n")
+        #     scraper = pickle.load(open("{}/scrape_checkpoint.p".format(workdir),'rb'))
+        #     scraper.repeat = 1    
+        # else:   
+            #Now combine the data, the ids, and the configuration into a single physcraper scrape object
+        filteredScrape =  FilterBlast(data_obj, ids, conf)
+        if add_local_seq != None:
+            print("will add local sequences now")
+            filteredScrape.add_local_seq(add_local_seq, id_to_spn_addseq_json)
+            # scraper.replace_new_seq()
+            filteredScrape.remove_identical_seqs()
+            filteredScrape.generate_streamed_alignment(treshold)
+
+
+
+
+        #run the ananlyses
+        filteredScrape.run_blast()
+        filteredScrape.read_blast()
+        filteredScrape.remove_identical_seqs()
+        filteredScrape.dump()
+        print(treshold)
+        if treshold != None:  
+
+            filteredScrape.sp_dict(downtorank)
+            filteredScrape.make_new_seq_dict(treshold=treshold, selectby=selectby)
+            filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
+            filteredScrape.replace_new_seq()
+        print("from replace to streamed aln")
+        filteredScrape.generate_streamed_alignment(treshold)
+    while filteredScrape.repeat == 1: 
+        filteredScrape.data.write_labelled(label='user:TaxonName')
+        filteredScrape.data.write_otus("otu_info", schema='table')
+        filteredScrape.run_blast()
+        filteredScrape.read_blast()
+        filteredScrape.remove_identical_seqs()
+#        scraper.how_many_sp_to_keep(treshold=treshhold)
+        print("make sp_dict")    
+        if treshold != None:  
+            filteredScrape.sp_dict(downtorank)
+            filteredScrape.make_new_seq_dict(treshold=treshold, selectby=selectby)
+            filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
+            filteredScrape.replace_new_seq()
+        filteredScrape.generate_streamed_alignment(treshold)
