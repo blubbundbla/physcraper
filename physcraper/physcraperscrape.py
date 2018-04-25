@@ -817,7 +817,7 @@ class FilterBlast(PhyscraperScrape):
 
                         gi = giID['^ncbi:gi']
                         if gi in self.new_seqs.keys():
-                            print(self.new_segs[gi])
+                            print(self.new_seqs[gi])
                             seq = self.sp_seq_d[key][gi]
                             self.filtered_seq[gi] = seq
 
