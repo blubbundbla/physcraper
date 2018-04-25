@@ -135,12 +135,6 @@ def own_data_run(seqaln,
                  trfn,
                  schema_trf,
                  workdir,
-                 treshold,
-                 selectby,
-                 downtorank,
-                 spInfoDict,
-                 add_local_seq,
-                 id_to_spn_addseq_json,
                  configfi):
     '''looks for pickeled file to continue run, or builds and runs 
     new analysis for as long as new seqs are found'''
@@ -213,17 +207,15 @@ def own_data_run(seqaln,
         scraper.read_blast()
         scraper.remove_identical_seqs()
         scraper.dump()
-        print(treshold)
-        scraper.generate_streamed_alignment(treshold)
+        scraper.generate_streamed_alignment()
     while scraper.repeat == 1: 
         scraper.data.write_labelled(label='user:TaxonName')
         scraper.data.write_otus("otu_info", schema='table')
         scraper.run_blast()
         scraper.read_blast()
         scraper.remove_identical_seqs()
-#        scraper.how_many_sp_to_keep(treshold=treshhold)
         print("make sp_dict")    
-        scraper.generate_streamed_alignment(treshold)
+        scraper.generate_streamed_alignment()
 
 def concat(genelist, workdir_comb, user_concat = None):
     if os.path.isfile("{}/concat_checkpoint.p".format(workdir_comb)): 
