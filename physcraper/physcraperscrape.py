@@ -901,9 +901,9 @@ class FilterBlast(PhyscraperScrape):
                         """species is not new in alignment, make blast with existing seq"""
                         if taxonID in self.sp_d.keys():
                             for element in self.sp_d[taxonID]:
-                                if '^user:TaxonName' in element:
-                                    blast_seq = "{}".format(element['^user:TaxonName'])
-                                    blast_db = "{}".format(element['^user:TaxonName'])
+                                if '^ot:ottTaxonName' in element:
+                                    blast_seq = "{}".format(element['^ot:ottTaxonName'])
+                                    blast_db = "{}".format(element['^ot:ottTaxonName'])
                                     self.select_seq_by_local_blast(self.sp_seq_d[taxonID], blast_seq, blast_db, treshold, count)
                                     # blastcount += 1
                     else:
