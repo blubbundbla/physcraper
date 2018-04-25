@@ -663,7 +663,7 @@ class FilterBlast(PhyscraperScrape):
                         # print(self.otu_dict.keys())
                         # if giID["^ncbi:gi"] not in self.gi_dict.keys():
                         ## i think I added that line for the local blast, but that is not working yet
-                        gi = giID['^ncbi:gi']
+                        gi = int(giID['^ncbi:gi'])
                         print(gi)
                         # gi_l.append(gi)
                         # # this should happen not here, several things of the list will be tried to be added several times
