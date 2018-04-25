@@ -135,6 +135,7 @@ def own_data_run(seqaln,
                  trfn,
                  schema_trf,
                  workdir,
+                 spInfoDict,
                  configfi):
     '''looks for pickeled file to continue run, or builds and runs 
     new analysis for as long as new seqs are found'''

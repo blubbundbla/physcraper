@@ -370,7 +370,8 @@ class PhyscraperScrape(object): #TODO do I wantto be able to instantiate this in
             else:
                 self.sp_d[value] = [self.data.otu_dict[key]]
             # print(self.sp_d[value])
-        # print(self.sp_d)
+        print(self.sp_d)
+        print(something_stupid)
         return
 
     def write_query_seqs(self):
@@ -556,41 +557,26 @@ class FilterBlast(PhyscraperScrape):
         '''select how many sequences per species to keep in the alignment.'''
         self.sp_seq_d = {}
         self.filtered_seq = {}
-        # blast_dir = self.blast_subdir
         print("in make_new_seq_dict")
-        ##### ???? DO I generate the files for the local blast here, or do i go to all the loops later again?
-        ##### At the moment I do that later again!
-        # if selectby == "blast":
-        #     if not os.path.exists("{}/blast".format(self.workdir)):
-        #         os.makedirs("{}/blast/".format(self.workdir))
+        
         for key in self.sp_d:
             """loop to populate dict. key1 = sp name, key2= gi number, value = seq, key2 amount determined by treshold and already present seq"""
             print(key)
-            # if len(self.sp_d[key]) > treshold:
-            """generate dict with sequences from where to add to phy"""
-            # print("number seq > threshold")
-            # if selectby=="blast":
-            #     fn_newseq = "./{}/blast/{}".format(self.workdir, key)
-            #     fi_new = open(fn_newseq, 'w')
-            #     fi_new.close()
-            # self.gilist=[]
             seq_d = {}
             tres_minimizer = 0
-            ## why did i make this gilist??
-            # for v in self.data.otu_dict.values():
-            #     if "^ncbi:gi" in v:
-            #         # print(v["^ncbi:gi"])
-            #         self.gilist.append(v["^ncbi:gi"])
-            #         # keyl.append(k)
-
+           
             for giID in self.sp_d[key]:
                 # print(giID)
                 # print(giID['^physcraper:last_blasted'] )
+
+
+
+
+
                 if giID['^physcraper:last_blasted'] != '1800/01/01':
                     if '^user:TaxonName'  in giID:
                         """generate entry for already existing sp"""
                         tres_minimizer += 1
-                        # userName = giID['^user:TaxonName']
                         userName = giID['^user:TaxonName']
                         for userName_aln, seq in self.data.aln.items():
                             if '^user:TaxonName' in self.data.otu_dict[userName_aln.label]:
@@ -601,15 +587,7 @@ class FilterBlast(PhyscraperScrape):
                                     seq = seq.replace("?", "")
                                     #seq_d[userName.label] = [seq, len(seq)]
                                     seq_d[userName_aln.label] = seq
-                                    # if selectby=="blast":
-                                    #     general_wd = os.getcwd()
-                                    #     # print("writing: {}".format(fn_oldseq))
-                                    #     os.chdir(os.path.join(self.workdir, "blast"))
-                                    #     fi_old = open(fn_oldseq, 'w')
-                                    #     fi_old.write(">{}\n".format(userName_aln.label))
-                                    #     fi_old.write("{}\n".format(seq))
-                                    #     fi_old.close()
-                                    #     os.chdir(general_wd)
+     
                     elif '^ot:ottTaxonName'  in giID:
                         """generate entry for already existing sp"""
                         tres_minimizer += 1
@@ -618,7 +596,6 @@ class FilterBlast(PhyscraperScrape):
                         for userName_aln, seq in self.data.aln.items():
                             if '^ot:ottTaxonName' in self.data.otu_dict[userName_aln.label]:
                                 if userName == self.data.otu_dict[userName_aln.label]['^ot:ottTaxonName']:
-                                    # fn_oldseq = key +  "_tobeblasted"
                                     seq = seq.symbols_as_string().replace("-", "")
                                     seq = seq.replace("?", "")
                                     #seq_d[userName.label] = [seq, len(seq)]
@@ -636,13 +613,12 @@ class FilterBlast(PhyscraperScrape):
 
 
 
-                    if "^ncbi:gi" in giID:
+                    if "^ncbi:gi" in giID: # this line should not be necessary as all new blast seq have gi
                         #maybe this line?
                         print(giID)
                         # print(self.otu_dict.keys())
                         print( self.data.gi_dict.keys())
-                        if giID["^ncbi:gi"] not in self.data.gi_dict.keys():
-                        ## i think I added that line for the local blast, but that is not working yet
+                        if giID["^ncbi:gi"] not in self.data.gi_dict.keys(): # if gi has never been queried before...
                             gi = int(giID['^ncbi:gi'])
                             print(gi)
                             
@@ -672,9 +648,9 @@ class FilterBlast(PhyscraperScrape):
                                     #     fi_new.close()
                 self.sp_seq_d[key] = seq_d
 
-        # print(self.sp_seq_d)
-        # print(self.sp_seq_d.keys())
-        # print(something_stupid)
+        print(self.sp_seq_d)
+        print(self.sp_seq_d.keys())
+        print(something_stupid)
 
         return
 
@@ -685,12 +661,16 @@ class FilterBlast(PhyscraperScrape):
         general_wd = os.getcwd()
         os.chdir(os.path.join(self.workdir, "blast"))
         blast_seq = blast_seq.replace(" ", "_")
-        fn = str(blast_seq) +  "_tobeblasted"
-        blast_db = blast_db.replace(" ", "_")
-        cmd1 = "makeblastdb -in " + str(blast_db) + "_db -dbtype nucl"
+
+        fn = "blast/{}_tobeblasted".format(str(blast_seq))
+        #fn = str(blast_seq) +  "_tobeblasted"
+        blast_db_fn = "blast/{}"format(blast_db.replace(" ", "_"))
+        cmd1 = "makeblastdb -in {}_db -dbtype nucl".format(str(blast_db_fn))
         print(cmd1)
         os.system(cmd1)
-        cmd2 = "blastn -query " + str(fn) +" -db " + str(blast_db) +"_db -out output_" + str(fn) + ".xml -outfmt 5"
+        cmd2 = "blastn -query {} -db {}_db -out output_{}.xml -outfmt 5".format(str(fn), str(blast_db_fn), str(fn))
+
+        # cmd2 = "blastn -query " + str(fn) +" -db " + str(blast_db) +"_db -out output_" + str(fn) + ".xml -outfmt 5"
         print(cmd2)
         os.system(cmd2)
         output_blast = "output_" + str(fn) + ".xml"

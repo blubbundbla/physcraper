@@ -16,7 +16,8 @@ id_to_spn = r"tiny_test_example/test_nicespl.csv"
 otu_jsonfi = "{}/otu_dict.json".format(workdir)
 treshold=2
 selectby="blast"
-downtorank = "species"
+downtorank = None
+# downtorank = "species"
 add_local_seq = None
 id_to_spn_addseq_json = None
 
@@ -29,10 +30,15 @@ else:
     json.dump(otu_json, open(otu_jsonfi,"w"))
 
 
-wrappers.own_data_run(seqaln,
+wrappers.filter_data_run(seqaln,
                  mattype,
                  trfn,
                  schema_trf,
                  workdir,
+                 treshold,
+                 selectby,
+                downtorank,
                  otu_jsonfi,
+                  add_local_seq,
+                 id_to_spn_addseq_json,
                  configfi)
