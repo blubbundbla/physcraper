@@ -70,10 +70,6 @@ class PhyscraperScrape(object): #TODO do I wantto be able to instantiate this in
             if otu_id in self.data.otu_dict:
                 last_blast = self.data.otu_dict[otu_id]['^physcraper:last_blasted']
                 today = str(datetime.date.today()).replace("-", "/")
-                print("last blast time in days")
-                print(datetime.datetime.strptime(today, "%Y/%m/%d"))
-                print(datetime.datetime.strptime(last_blast, "%Y/%m/%d"))
-                print(abs((datetime.datetime.strptime(today, "%Y/%m/%d") - datetime.datetime.strptime(last_blast, "%Y/%m/%d")).days))
                 if abs((datetime.datetime.strptime(today, "%Y/%m/%d") - datetime.datetime.strptime(last_blast, "%Y/%m/%d")).days) > 14: #TODO make configurable
                     equery = "{}:{}[mdat]".format(self.mrca_ncbi,
                                                   last_blast,
@@ -350,7 +346,7 @@ class PhyscraperScrape(object): #TODO do I wantto be able to instantiate this in
                     ## does not always seem to work
                 else:
                     print("no taxon name provided! It will fail")
-                print(ncbiID)
+                # print(ncbiID)
                 lineage = ncbi.get_lineage(ncbiID)
                 # names = ncbi.get_taxid_translator(lineage)
                 lineage2ranks = ncbi.get_rank(lineage)
@@ -358,7 +354,7 @@ class PhyscraperScrape(object): #TODO do I wantto be able to instantiate this in
                     if v == downtorank:
                         tax_id = k
                         value_d = ncbi.get_taxid_translator([tax_id])
-                        print(value_d)
+                        # print(value_d)
                         value = value_d[int(tax_id)]
             else:
                 if '^user:TaxonName' in self.data.otu_dict[key].keys():
@@ -821,7 +817,7 @@ class FilterBlast(PhyscraperScrape):
 
                         gi = giID['^ncbi:gi']
                         if gi in self.new_seqs.keys():
-
+                            print(self.new.segs[gi])
                             seq = self.sp_seq_d[key][gi]
                             self.filtered_seq[gi] = seq
 
