@@ -8,7 +8,7 @@ from physcraper import wrappers, generate_ATT_from_files, AlignTreeTax
 #
 seqaln= "Senecio_ets/senecio_ets.fasta"
 mattype="fasta"
-trfn= "Senecio_ets/senecio_ets.tre"
+trfn= "Senecio_ets/Senecio_ets.tre"
 schema_trf = "newick"
 workdir="Senecio_ets_out"
 id_to_spn = r"Senecio_ets/nicespl.csv"
