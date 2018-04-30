@@ -6,7 +6,8 @@ import subprocess
 import json
 import csv
 from ete2 import NCBITaxa
-from physcraper import generate_ATT_from_phylesystem, generate_ATT_from_files, ConfigObj, IdDicts, PhyscraperScrape, FilterBlast, Concat
+from physcraper import generate_ATT_from_phylesystem, generate_ATT_from_files, ConfigObj, IdDicts, PhyscraperScrape 
+from physcraper import FilterBlast #, Concat
 from dendropy import DnaCharacterMatrix
 
 
@@ -25,8 +26,6 @@ def get_ottid(configfi, cwd):
                      conf = ConfigObj(configfi)
                      ids = IdDicts(conf, cwd)  
                      return(ids)            
-
-
 
 def standard_run(study_id,
                  tree_id,
@@ -256,6 +255,8 @@ def filter_data_run(seqaln,
         # print("config")
         print(dir(conf))
         print(conf.email)
+
+        # number_rounds = 1
         # print(seqaln, mattype)
         # #aln = DnaCharacterMatrix.get(path=seqaln, schema=mattype)
 
@@ -264,9 +265,9 @@ def filter_data_run(seqaln,
                              mattype=mattype, 
                              workdir=workdir,
                              treefile=trfn,
-                             schema_trf = schema_trf,
+                             schema_trf=schema_trf,
                              otu_json=spInfoDict,
-                             email = conf.email,
+                             email=conf.email,
                              ingroup_mrca=None)
 
         #Prune sequnces below a certain length threshold
@@ -320,24 +321,31 @@ def filter_data_run(seqaln,
         print(treshold)
         if treshold != None:  
             filteredScrape.sp_dict(downtorank)
-            filteredScrape.make_new_seq_dict(treshold=treshold, selectby=selectby)
+            filteredScrape.make_sp_seq_dict(treshold=treshold, selectby=selectby)
             filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
             filteredScrape.replace_new_seq()
         print("from replace to streamed aln")
         filteredScrape.generate_streamed_alignment(treshold)
         filteredScrape.dump()
     while filteredScrape.repeat == 1: 
+        # number_rounds += 1
         filteredScrape.data.write_labelled(label='user:TaxonName')
         filteredScrape.data.write_otus("otu_info", schema='table')
         filteredScrape.run_blast()
         filteredScrape.read_blast()
         filteredScrape.remove_identical_seqs()
-#        scraper.how_many_sp_to_keep(treshold=treshhold)
         print("make sp_dict")    
         if treshold != None:  
             filteredScrape.sp_dict(downtorank)
-            filteredScrape.make_new_seq_dict(treshold=treshold, selectby=selectby)
+            filteredScrape.make_sp_seq_dict(treshold=treshold, selectby=selectby)
             filteredScrape.how_many_sp_to_keep(treshold=treshold, selectby=selectby)
             filteredScrape.replace_new_seq()
         filteredScrape.generate_streamed_alignment(treshold)
         filteredScrape.dump()
+
+        folder = '{}/blast/'.format(filteredScrape.workdir)
+        for the_file in os.listdir(folder):
+            file_path = os.path.join(folder, the_file)
+            if os.path.isfile(file_path):
+                os.unlink(file_path)
+        # print("There are no more new sequences after running {} rounds.".format(number_rounds))
