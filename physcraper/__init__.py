@@ -364,27 +364,38 @@ class AlignTreeTax(object):
     def _reconcile_names(self):
         """This checks that the tree "original labels" from phylsystem
         align with those found in the alignment. Spaces vs underscores
-        kept being an issue, so all spaces are coerced to underscores throughout!"""
-        treed_taxa = set()
+        kept being an issue, so all spaces are coerced to underscores throughout!
+
+        CURRENTLY ONLY DELETES TAXA THAT ARE ONLY IN THE ALIGNEMNT BUT NOT IN THE TREE"""
+        treed_tax = set()
         for leaf in self.tre.leaf_nodes():
-            treed_taxa.add(leaf.taxon)
-        aln_tax = set([tax for tax in self.aln.taxon_namespace])
-        prune = treed_taxa ^ aln_tax
+            treed_tax.add(leaf.taxon)
+        aln_tax = set()
+        for tax, seq in self.aln.items():
+            aln_tax.add(tax)
+        prune = treed_tax ^ aln_tax
         missing = [i.label for i in prune]
         if missing:
             errmf = 'NAME RECONCILIATION Some of the taxa in the tree are not in the alignment or vice versa and will be pruned. Missing "{}"\n'
             errm = errmf.format('", "'.join(missing))
             sys.stderr.write(errm)
-        self.aln.remove_sequences(prune)
-        self.tre.prune_taxa(prune)
+        for taxon in prune:
+            assert (taxon in aln_tax) or (taxon in treed_tax)
+            if taxon in aln_tax:
+                self.aln.remove_sequences(prune)
+            if taxon in treed_tax:
+                self.tre.prune_taxa(prune)
         for tax in prune:
-            try:
-                self.otu_dict[tax.label]['^physcraper:status'] = "deleted in name reconciliation"
-            except:
+            #potentially slow at large number of taxa and large numbers to be pruned
+            found = 0
+            for otu in self.otu_dict:
+                if self.otu_dict[otu][u'^ot:originalLabel'] == tax.label:
+                    self.otu_dict[otu]['^physcraper:status'] = "deleted in name reconciliation"
+                    found = 1
+            if found == 0:
                 sys.stderr.write("lost taxon {} in name reconcilliation".format(tax.label))
             self.aln.taxon_namespace.remove_taxon(tax)
         assert (self.aln.taxon_namespace == self.tre.taxon_namespace)
-        reverse_otu_dict = {}
         for tax in self.aln.taxon_namespace:
             if tax.label in self.otu_dict.keys():
                 pass
