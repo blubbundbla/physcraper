@@ -4,10 +4,10 @@ import sys
 import os
 
 
-study_id = "pg_873"
-tree_id = "tree1679"
+study_id = "pg_1799"
+tree_id = "tree3637"
 
-configfi = "tests/local.config"
+configfi = "tests/data/test.config"
 
 conf = ConfigObj(configfi)
 
