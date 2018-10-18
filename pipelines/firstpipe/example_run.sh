@@ -4,7 +4,7 @@
 virtualenv venv2 
 source venv2/bin/activate
 
-pip install -r requirements.txt
-python setup.py develop
+pip install -r ./../../requirements.txt
+python ./../../setup.py develop
 
-python docs/example.py
+python ./../../docs/example.py
